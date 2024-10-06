@@ -1,5 +1,5 @@
 import streamlit as st
-import PyPDF2
+import pypdf
 from gtts import gTTS
 from io import BytesIO
 import os
@@ -12,7 +12,7 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # Function to extract text from a PDF
 def extract_text_from_pdf(pdf_file):
-    pdf_reader = PyPDF2.PdfReader(pdf_file)
+    pdf_reader = pypdf.PdfReader(pdf_file)
     text = ""
     for page_num in range(len(pdf_reader.pages)):
         page = pdf_reader.pages[page_num]
