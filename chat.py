@@ -1,14 +1,14 @@
 import streamlit as st
 import pypdf
-from gtts import gTTS
 from io import BytesIO
 import os
 from groq import Groq # Importing Groq for ChatGroq API
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-
+from io import BytesIO
+from openai import OpenAI
 
 # Initialize ChatGroq with your API key
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+llm = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # Function to extract text from a PDF
 def extract_text_from_pdf(pdf_file):
@@ -25,13 +25,31 @@ def extract_text_from_pdf(pdf_file):
 
 # Function to convert text to speech and return as audio
 def text_to_speech(text):
+    # Step 1: Condense paper to insights and create a podcast transcript
     summary = condense_paper_to_insights_in_chunks(text)
     podcast_transcript = create_podcast_transcript(summary)
-    tts = gTTS(podcast_transcript, lang='en')
-    # Save the speech to a file-like object (in memory)
+    
+    # Step 2: Initialize OpenAI Client
+    client = OpenAI()
+
+    # Step 3: Call OpenAI's TTS API to get the audio stream
+    response = client.audio.speech.create(
+        model="tts-1",  # Assuming "tts-1" is the correct model name
+        voice="alloy",  # Assuming "alloy" is the correct voice name
+        input=podcast_transcript  # Pass the podcast transcript to the TTS model
+    )
+
+    # Step 4: Manually stream the response content to a BytesIO object
+    audio_content = response.read()
+
+    # Step 5: Create a BytesIO object and write the binary content
     audio_file = BytesIO()
-    tts.write_to_fp(audio_file)
-    audio_file.seek(0)  # Move back to the start of the BytesIO object
+    audio_file.write(audio_content)
+
+    # Move back to the start of the BytesIO object
+    audio_file.seek(0)
+
+    # Return the in-memory audio file
     return audio_file
 
 def condense_paper_to_insights_in_chunks(extracted_text, chunk_size=4096, overlap=200):
@@ -56,7 +74,7 @@ def condense_paper_to_insights_in_chunks(extracted_text, chunk_size=4096, overla
 
 
         # Call to ChatGroq's API to get the summary for each chunk
-        chat_completion = client.chat.completions.create(
+        chat_completion = llm.chat.completions.create(
             messages=[
                 {
                     "role": "user",
@@ -93,7 +111,7 @@ def create_podcast_transcript(insights):
           f"Write it as a fluid, natural conversation, and ensure it remains engaging.")
 
     # Call to ChatGroq's API to create the podcast transcript
-    chat_completion = client.chat.completions.create(
+    chat_completion = llm.chat.completions.create(
         messages=[
             {
                 "role": "user",
