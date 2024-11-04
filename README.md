@@ -23,7 +23,7 @@ This Streamlit application converts text from PDF files into a podcast-style aud
 ## Installation
 1. **Clone this repository** and navigate to the project folder:
    ```bash
-   git clone <repository-url>
+   git clone <https://github.com/veeraprathp/Podverse>
    cd pdf-to-podcast
    ```
 
