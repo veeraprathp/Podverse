@@ -1,6 +1,3 @@
-Here's a README file for the provided code:
-
----
 
 # PDF to Podcast Converter
 
